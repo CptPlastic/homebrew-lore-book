@@ -1,4 +1,4 @@
-class Lore < Formula
+class LoreBook < Formula
   include Language::Python::Virtualenv
 
   desc "The spellbook for your codebase — AI project memory"
