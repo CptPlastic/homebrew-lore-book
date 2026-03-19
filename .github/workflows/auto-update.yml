@@ -1,0 +1,53 @@
+name: Auto-update lore-book
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Daily at 08:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Get latest version from PyPI
+        id: pypi
+        run: |
+          VERSION=$(curl -sSf https://pypi.org/pypi/lore-book/json | \
+            python3 -c "import sys, json; print(json.load(sys.stdin)['info']['version'])")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Get current formula version
+        id: formula
+        run: |
+          VERSION=$(grep -oP '(?<=lore_book-)[\d.]+(?=\.tar\.gz)' Formula/lore-book.rb | head -1)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula
+        if: steps.pypi.outputs.version != steps.formula.outputs.version
+        env:
+          NEW_VERSION: ${{ steps.pypi.outputs.version }}
+        run: |
+          HOMEBREW_TAPS="$(brew --repository)/Library/Taps"
+          mkdir -p "$HOMEBREW_TAPS/cptplastic"
+          ln -sfn "$GITHUB_WORKSPACE" "$HOMEBREW_TAPS/cptplastic/homebrew-lore-book"
+          brew update-python-resources lore-book --version "$NEW_VERSION"
+
+      - name: Open pull request
+        if: steps.pypi.outputs.version != steps.formula.outputs.version
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "lore-book ${{ steps.pypi.outputs.version }}"
+          title: "Update lore-book to ${{ steps.pypi.outputs.version }}"
+          body: |
+            Automated formula update to lore-book ${{ steps.pypi.outputs.version }}.
+
+            Bumps the main package URL/sha256 and all Python resource blocks via `brew update-python-resources`.
+          branch: "bump/lore-book-${{ steps.pypi.outputs.version }}"
+          delete-branch: true

@@ -8,6 +8,11 @@ class LoreBook < Formula
 
   license "MIT"
 
+  livecheck do
+    url :stable
+    strategy :pypi
+  end
+
   depends_on "python@3.12"
 
   resource "annotated-doc" do
