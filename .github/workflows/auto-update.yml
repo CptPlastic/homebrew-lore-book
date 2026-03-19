@@ -25,7 +25,7 @@ jobs:
       - name: Get current formula version
         id: formula
         run: |
-          VERSION=$(grep -oP '(?<=lore_book-)[\d.]+(?=\.tar\.gz)' Formula/lore-book.rb | head -1)
+          VERSION=$(sed -n 's|.*lore_book-\([0-9.]*\)\.tar\.gz.*|\1|p' Formula/lore-book.rb | head -1)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update formula
@@ -43,10 +43,20 @@ jobs:
           ")
 
           # 2. Update the main url + sha256 in the formula
-          sed -i '' \
-            -e "s|url \"https://files.pythonhosted.org/packages/.*/lore_book-[^\"]*\"|url \"$NEW_URL\"|" \
-            -e "/url \"$NEW_URL\"/{n; s|sha256 \"[^\"]*\"|sha256 \"$NEW_SHA256\"|;}" \
-            Formula/lore-book.rb
+          NEW_URL="$NEW_URL" NEW_SHA256="$NEW_SHA256" python3 - <<'PYEOF'
+          import re, os
+          new_url = os.environ['NEW_URL']
+          new_sha256 = os.environ['NEW_SHA256']
+          with open('Formula/lore-book.rb') as f:
+              content = f.read()
+          content = re.sub(
+              r'url "https://files\.pythonhosted\.org/packages/[^"]*lore_book-[^"]+\.tar\.gz"(\n  sha256 ")[^"]+"',
+              f'url "{new_url}"\\g<1>{new_sha256}"',
+              content
+          )
+          with open('Formula/lore-book.rb', 'w') as f:
+              f.write(content)
+          PYEOF
 
           # 3. Update all dependency resource blocks
           HOMEBREW_TAPS="$(brew --repository)/Library/Taps"
