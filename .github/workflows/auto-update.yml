@@ -15,9 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
-
       - name: Get latest version from PyPI
         id: pypi
         run: |
@@ -36,36 +33,88 @@ jobs:
         env:
           NEW_VERSION: ${{ steps.pypi.outputs.version }}
         run: |
-          # 1. Fetch the new sdist URL and sha256 from PyPI
-          read NEW_URL NEW_SHA256 < <(python3 -c "
-          import urllib.request, json
-          with urllib.request.urlopen('https://pypi.org/pypi/lore-book/${{ steps.pypi.outputs.version }}/json') as r:
-              data = json.loads(r.read())
-          sdist = next(f for f in data['urls'] if f['packagetype'] == 'sdist')
-          print(sdist['url'], sdist['digests']['sha256'])
-          ")
+          python3 - <<'PYEOF'
+          import urllib.request, json, re, os
 
-          # 2. Update the main url + sha256 in the formula
-          NEW_URL="$NEW_URL" NEW_SHA256="$NEW_SHA256" python3 - <<'PYEOF'
-          import re, os
-          new_url = os.environ['NEW_URL']
-          new_sha256 = os.environ['NEW_SHA256']
-          with open('Formula/lore-book.rb') as f:
-              content = f.read()
+          new_version = os.environ['NEW_VERSION']
+
+          def pypi_json(name, version=None):
+              url = f'https://pypi.org/pypi/{name}/{version}/json' if version else f'https://pypi.org/pypi/{name}/json'
+              with urllib.request.urlopen(url) as r:
+                  return json.loads(r.read())
+
+          def best_file(files):
+              """Return (url, sha256) preferring py3-none-any wheel, then py2.py3 wheel, then sdist."""
+              for tag in ['-py3-none-any.whl', '-py2.py3-none-any.whl']:
+                  for f in files:
+                      if f['filename'].endswith(tag):
+                          return f['url'], f['digests']['sha256']
+              for f in files:
+                  if f['packagetype'] == 'sdist':
+                      return f['url'], f['digests']['sha256']
+              raise RuntimeError('No suitable file found')
+
+          with open('Formula/lore-book.rb') as fh:
+              content = fh.read()
+
+          # 1. Update main package url + sha256
+          data = pypi_json('lore-book', new_version)
+          main_url, main_sha = best_file(data['urls'])
           content = re.sub(
-              r'url "https://files\.pythonhosted\.org/packages/[^"]*lore_book-[^"]+\.tar\.gz"(\n  sha256 ")[^"]+"',
-              f'url "{new_url}"\\g<1>{new_sha256}"',
+              r'(  url ")[^"]*lore_book-[^"]+(")',
+              f'\\g<1>{main_url}\\2',
               content
           )
-          with open('Formula/lore-book.rb', 'w') as f:
-              f.write(content)
-          PYEOF
+          content = re.sub(
+              r'(  sha256 ")[^"]+("(\n\n  license))',
+              f'\\g<1>{main_sha}\\2',
+              content
+          )
 
-          # 3. Update all dependency resource blocks
-          HOMEBREW_TAPS="$(brew --repository)/Library/Taps"
-          mkdir -p "$HOMEBREW_TAPS/cptplastic"
-          ln -sfn "$GITHUB_WORKSPACE" "$HOMEBREW_TAPS/cptplastic/homebrew-lore-book"
-          brew update-python-resources lore-book --version "$NEW_VERSION"
+          # 2. Update each resource block
+          def update_resource(content, res_name, pypi_name, version):
+              data = pypi_json(pypi_name, version)
+              url, sha = best_file(data['urls'])
+              pattern = (
+                  r'(  resource "' + re.escape(res_name) + r'" do\n'
+                  r'    url ")[^"]+("\n'
+                  r'    sha256 ")[^"]+(")'
+              )
+              replacement = f'\\g<1>{url}\\2\\3{sha}\\4'
+              new_content = re.sub(pattern, replacement, content)
+              if new_content == content:
+                  print(f'WARNING: pattern did not match for {res_name}')
+              return new_content
+
+          # Collect current resource versions from the formula
+          resource_versions = dict(re.findall(
+              r'resource "[^"]+" do\n    url "[^"]*?([a-zA-Z0-9_.-]+-(\d+[.\d]*)[-.](?:tar\.gz|whl))"',
+              content
+          ))
+
+          # Parse resource name -> (pypi_name, version) from formula
+          resources = re.findall(
+              r'resource "([^"]+)" do\n    url "[^"]*?/([a-zA-Z0-9_.]+)-(\d[\d.]*?)[-.](?:py3-none-any\.whl|py2\.py3-none-any\.whl|tar\.gz)"',
+              content
+          )
+
+          pypi_name_map = {
+              'annotated-doc': 'annotated-doc',
+              'GitPython': 'GitPython',
+              'Pygments': 'Pygments',
+              'PyYAML': 'PyYAML',
+          }
+
+          for res_name, _, version in resources:
+              # Derive PyPI package name: resource name takes priority in map, else normalise
+              pypi_name = pypi_name_map.get(res_name, res_name)
+              content = update_resource(content, res_name, pypi_name, version)
+
+          with open('Formula/lore-book.rb', 'w') as fh:
+              fh.write(content)
+
+          print(f'Formula updated to lore-book {new_version}')
+          PYEOF
 
       - name: Open pull request
         if: steps.pypi.outputs.version != steps.formula.outputs.version
