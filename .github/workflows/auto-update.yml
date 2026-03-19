@@ -33,6 +33,22 @@ jobs:
         env:
           NEW_VERSION: ${{ steps.pypi.outputs.version }}
         run: |
+          # 1. Fetch the new sdist URL and sha256 from PyPI
+          read NEW_URL NEW_SHA256 < <(python3 -c "
+          import urllib.request, json
+          with urllib.request.urlopen('https://pypi.org/pypi/lore-book/${{ steps.pypi.outputs.version }}/json') as r:
+              data = json.loads(r.read())
+          sdist = next(f for f in data['urls'] if f['packagetype'] == 'sdist')
+          print(sdist['url'], sdist['digests']['sha256'])
+          ")
+
+          # 2. Update the main url + sha256 in the formula
+          sed -i '' \
+            -e "s|url \"https://files.pythonhosted.org/packages/.*/lore_book-[^\"]*\"|url \"$NEW_URL\"|" \
+            -e "/url \"$NEW_URL\"/{n; s|sha256 \"[^\"]*\"|sha256 \"$NEW_SHA256\"|;}" \
+            Formula/lore-book.rb
+
+          # 3. Update all dependency resource blocks
           HOMEBREW_TAPS="$(brew --repository)/Library/Taps"
           mkdir -p "$HOMEBREW_TAPS/cptplastic"
           ln -sfn "$GITHUB_WORKSPACE" "$HOMEBREW_TAPS/cptplastic/homebrew-lore-book"

@@ -3,8 +3,8 @@ class LoreBook < Formula
 
   desc "The spellbook for your codebase — AI project memory"
   homepage "https://github.com/CptPlastic/lore-book"
-  url "https://files.pythonhosted.org/packages/cf/12/b6460a336540df5b0ee0cbdbc6f155e3eed5df43fa097d25991189905e0e/lore_book-0.1.4.tar.gz"
-  sha256 "189cd4f5b8ce6e9381831a361e18357aed8d777f408d7b3d302bc34ced0cac3c"
+  url "https://files.pythonhosted.org/packages/a4/aa/28e2c32823fe93450dd9130566cf2fe4e493b580991df69cd34bdb4eda38/lore_book-0.1.5.tar.gz"
+  sha256 "9eebb6e194ffc570a754f3f3690cb48663557cfd47405d9dcd1f3ac67de00f2a"
 
   license "MIT"
 
@@ -56,8 +56,8 @@ class LoreBook < Formula
   end
 
   resource "numpy" do
-    url "https://files.pythonhosted.org/packages/37/7d/3fec4199c5ffb892bed55cff901e4f39a58c81df9c44c280499e92cad264/numpy-2.3.2.tar.gz"
-    sha256 "e0486a11ec30cdecb53f184d496d1c6a20786c81e55e41640270130056f8ee48"
+    url "https://files.pythonhosted.org/packages/10/8b/c265f4823726ab832de836cdd184d0986dcf94480f81e8739692a7ac7af2/numpy-2.4.3.tar.gz"
+    sha256 "483a201202b73495f00dbc83796c6ae63137a9bdade074f7648b3e32613412dd"
   end
 
   resource "platformdirs" do
@@ -71,8 +71,8 @@ class LoreBook < Formula
   end
 
   resource "PyYAML" do
-    url "https://files.pythonhosted.org/packages/54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz"
-    sha256 "d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"
+    url "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz"
+    sha256 "d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f"
   end
 
   resource "rich" do
