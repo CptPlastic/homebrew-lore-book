@@ -261,6 +261,16 @@
       border-top: 1px solid rgba(200,151,58,0.2);
     }
 
+    /* ── Sparkle canvas ── */
+    #sparkles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .page { position: relative; z-index: 1; }
+
     /* ── Responsive ── */
     @media (max-width: 600px) {
       .parchment { padding: 1.75rem 1.25rem; }
@@ -269,6 +279,67 @@
   </style>
 </head>
 <body>
+<canvas id="sparkles"></canvas>
+<script>
+(function(){
+  const canvas = document.getElementById('sparkles');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const GLYPHS = ['✦','✧','⋆','·','✵','✴','⚝','∗'];
+  const COUNT  = 55;
+
+  function rand(min, max) { return Math.random() * (max - min) + min; }
+
+  function spawn() {
+    return {
+      x:     rand(0, W),
+      y:     rand(-H * 0.6, H * 0.2),
+      vy:    rand(0.12, 0.45),
+      vx:    rand(-0.15, 0.15),
+      life:  0,
+      maxLife: rand(140, 320),
+      size:  rand(9, 18),
+      glyph: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+      hue:   rand(38, 52),
+    };
+  }
+
+  for (let i = 0; i < COUNT; i++) {
+    const p = spawn();
+    p.life = rand(0, p.maxLife);
+    particles.push(p);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      const t = p.life / p.maxLife;
+      const alpha = t < 0.15 ? t / 0.15
+                  : t > 0.75 ? (1 - t) / 0.25
+                  : 1;
+      ctx.globalAlpha = alpha * 0.75;
+      ctx.fillStyle = `hsl(${p.hue}, 90%, 72%)`;
+      ctx.font = `${p.size}px serif`;
+      ctx.fillText(p.glyph, p.x, p.y);
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life++;
+      if (p.life >= p.maxLife) Object.assign(p, spawn(), {life: 0});
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
 <div class="page">
 
   <!-- ══ COVER ══ -->
@@ -325,25 +396,16 @@
     <h2><span class="rune">🜏</span> Incantations</h2>
 
     <h3>Install via Homebrew</h3>
-    <div class="incantation"><span class="comment"># Bind the tap</span>
-<span class="cmd">brew tap</span> <span class="arg">CptPlastic/lore-book</span>
-<span class="cmd">brew install</span> <span class="arg">lore-book</span></div>
+    <div class="incantation"><span class="comment"># Bind the tap</span><br><span class="cmd">brew tap</span> <span class="arg">CptPlastic/lore-book</span><br><span class="cmd">brew install</span> <span class="arg">lore-book</span></div>
+
+    <h3>Install via pip</h3>
+    <div class="incantation"><span class="cmd">pip install</span> <span class="arg">lore-book</span></div>
 
     <h3>Cast your first spells</h3>
-    <div class="incantation"><span class="comment"># Record a decision</span>
-<span class="cmd">lore add</span> <span class="arg">decisions</span> <span class="arg">"Use PostgreSQL — we need JSONB and row-level locking"</span>
-
-<span class="comment"># Record a fact</span>
-<span class="cmd">lore add</span> <span class="arg">facts</span> <span class="arg">"Auth service is the sole issuer of JWTs — never bypass it"</span>
-
-<span class="comment"># Record a preference</span>
-<span class="cmd">lore add</span> <span class="arg">preferences</span> <span class="arg">"Prefer explicit over clever — this codebase has many contributors"</span>
-
-<span class="comment"># Publish to all AI instruction files</span>
-<span class="cmd">lore export</span></div>
+    <div class="incantation"><span class="comment"># Record a decision</span><br><span class="cmd">lore add</span> <span class="arg">decisions</span> <span class="arg">"Use PostgreSQL — we need JSONB and row-level locking"</span><br><br><span class="comment"># Record a fact</span><br><span class="cmd">lore add</span> <span class="arg">facts</span> <span class="arg">"Auth service is the sole issuer of JWTs — never bypass it"</span><br><br><span class="comment"># Record a preference</span><br><span class="cmd">lore add</span> <span class="arg">preferences</span> <span class="arg">"Prefer explicit over clever — this codebase has many contributors"</span><br><br><span class="comment"># Publish to all AI instruction files</span><br><span class="cmd">lore export</span></div>
 
     <h3>Upgrade</h3>
-    <div class="incantation"><span class="cmd">brew upgrade</span> <span class="arg">lore-book</span></div>
+    <div class="incantation"><span class="cmd">brew upgrade</span> <span class="arg">lore-book</span><br><span class="comment"># or</span><br><span class="cmd">pip install</span> <span class="arg">--upgrade lore-book</span></div>
   </section>
 
   <!-- ══ GRIMOIRE OF SPELLS ══ -->
@@ -358,17 +420,6 @@
       <li><strong>lore export</strong> — Publish the Chronicle to AI instruction files</li>
       <li><strong>lore version</strong> — Reveal the grimoire's edition</li>
     </ul>
-  </section>
-
-  <!-- ══ SCROLLS & PORTALS ══ -->
-  <section class="parchment">
-    <h2><span class="rune">🜁</span> Scrolls &amp; Portals</h2>
-    <div class="links">
-      <a class="link-rune" href="https://github.com/CptPlastic/lore-book" target="_blank" rel="noopener">⚔ Source Codex</a>
-      <a class="link-rune" href="https://pypi.org/project/lore-book/" target="_blank" rel="noopener">🜏 PyPI Tome</a>
-      <a class="link-rune" href="https://github.com/CptPlastic/homebrew-lore-book/issues" target="_blank" rel="noopener">📜 Issue Scroll</a>
-      <a class="link-rune" href="https://github.com/CptPlastic/homebrew-lore-book" target="_blank" rel="noopener">🍺 Homebrew Tap</a>
-    </div>
   </section>
 
   <div class="divider">— ✦ — ✦ — ✦ —</div>
