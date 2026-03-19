@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lore — The Spellbook for Your Codebase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --parchment: #f5ead6;
+      --parchment-dark: #e8d5b0;
+      --ink: #2a1f0e;
+      --ink-faded: #5c4a2a;
+      --gold: #c8973a;
+      --gold-bright: #e8b84b;
+      --red: #8b1a1a;
+      --glow: rgba(200, 151, 58, 0.3);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #1a1208;
+      background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(200,151,58,0.08) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      color: var(--ink);
+      font-family: 'Crimson Text', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── Page wrapper ── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+    }
+
+    /* ── Book cover header ── */
+    .cover {
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      border-bottom: 2px solid var(--gold);
+      position: relative;
+    }
+    .cover::before {
+      content: '✦  ✦  ✦';
+      display: block;
+      color: var(--gold);
+      letter-spacing: 0.5em;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+    .cover::after {
+      content: '✦  ✦  ✦';
+      display: block;
+      color: var(--gold);
+      letter-spacing: 0.5em;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .sigil {
+      font-size: 4rem;
+      line-height: 1;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 18px var(--gold-bright));
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(2.8rem, 8vw, 5rem);
+      font-weight: 900;
+      color: var(--gold-bright);
+      text-shadow: 0 0 40px rgba(232,184,75,0.4), 2px 2px 0 rgba(0,0,0,0.5);
+      letter-spacing: 0.08em;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      margin-top: 0.75rem;
+      font-weight: 400;
+    }
+
+    .tagline {
+      font-style: italic;
+      color: var(--parchment-dark);
+      font-size: 1.2rem;
+      margin-top: 1.25rem;
+      opacity: 0.85;
+    }
+
+    /* ── Parchment sections ── */
+    .parchment {
+      background: var(--parchment);
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+      border: 1px solid var(--gold);
+      border-radius: 2px;
+      padding: 2.5rem 3rem;
+      margin: 2.5rem 0;
+      box-shadow:
+        0 0 0 4px rgba(200,151,58,0.15),
+        0 8px 40px rgba(0,0,0,0.6),
+        inset 0 0 60px rgba(200,151,58,0.06);
+      position: relative;
+    }
+    .parchment::before {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(200,151,58,0.25);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+
+    h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--red);
+      letter-spacing: 0.12em;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    h2 .rune { color: var(--gold); font-size: 1.1em; }
+
+    h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.05rem;
+      color: var(--ink-faded);
+      letter-spacing: 0.1em;
+      margin: 1.5rem 0 0.5rem;
+    }
+
+    p { color: var(--ink); margin-bottom: 0.8rem; }
+
+    /* ── Spell list ── */
+    .spells { list-style: none; padding: 0; }
+    .spells li {
+      padding: 0.5rem 0 0.5rem 1.8rem;
+      border-bottom: 1px dashed rgba(200,151,58,0.3);
+      position: relative;
+      color: var(--ink);
+    }
+    .spells li:last-child { border-bottom: none; }
+    .spells li::before {
+      content: '⚜';
+      position: absolute;
+      left: 0;
+      color: var(--gold);
+      font-size: 0.85em;
+      top: 0.65rem;
+    }
+    .spells li strong {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      color: var(--red);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Scroll diagram ── */
+    .scroll-diagram {
+      background: rgba(0,0,0,0.06);
+      border: 1px solid rgba(200,151,58,0.35);
+      border-radius: 2px;
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0;
+      font-family: 'Crimson Text', serif;
+      font-size: 0.95rem;
+      color: var(--ink-faded);
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    /* ── Install incantation ── */
+    .incantation {
+      background: #0f0a03;
+      border: 1px solid var(--gold);
+      border-radius: 2px;
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.92rem;
+      color: var(--gold-bright);
+      box-shadow: 0 0 20px rgba(200,151,58,0.15), inset 0 0 30px rgba(0,0,0,0.4);
+      overflow-x: auto;
+    }
+    .incantation .comment { color: #5c7a3a; }
+    .incantation .cmd { color: #e8b84b; }
+    .incantation .arg { color: #c8d89a; }
+
+    /* ── Dividers ── */
+    .divider {
+      text-align: center;
+      color: var(--gold);
+      margin: 0.5rem 0;
+      letter-spacing: 0.6em;
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    /* ── Links ── */
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .link-rune {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      color: var(--red);
+      text-decoration: none;
+      border: 1px solid rgba(139,26,26,0.4);
+      padding: 0.4rem 1rem;
+      border-radius: 1px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .link-rune:hover {
+      background: rgba(139,26,26,0.1);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* ── Version badge ── */
+    .ver-badge {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      color: var(--gold);
+      border: 1px solid rgba(200,151,58,0.4);
+      padding: 0.2rem 0.7rem;
+      border-radius: 1px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      color: rgba(200,151,58,0.4);
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(200,151,58,0.2);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .parchment { padding: 1.75rem 1.25rem; }
+      .scroll-diagram { font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ COVER ══ -->
+  <header class="cover">
+    <div class="sigil">📜</div>
+    <h1>Lore</h1>
+    <p class="subtitle">The Homebrew Tap</p>
+    <p class="tagline">"The spellbook for your codebase — chronicle decisions, context,<br>and lessons your AI companions can actually read."</p>
+  </header>
+
+  <!-- ══ WHAT IS THIS ══ -->
+  <section class="parchment">
+    <h2><span class="rune">✦</span> What is Lore?</h2>
+    <p>
+      AI coding tools are <em>stateless</em>. They don't remember why you chose PostgreSQL over SQLite, that the auth layer must never bypass JWT validation, or that the frontend team deprecated the v1 API six months ago. You end up re-explaining the same context in every session.
+    </p>
+    <p>
+      <strong>Lore</strong> fixes that. It is a local AI memory system for software projects. You capture knowledge once as plain YAML alongside your code — then Lore publishes it as instruction files that GitHub Copilot, Claude, Cursor, Codex, and other AI tools read automatically.
+    </p>
+    <p>No external database. No API keys. No cloud sync. Everything lives in <code>.lore/</code> next to your code.</p>
+  </section>
+
+  <!-- ══ THE THREE ARTEFACTS ══ -->
+  <section class="parchment">
+    <h2><span class="rune">⚜</span> The Three Artefacts</h2>
+
+    <h3>Spell <em style="font-weight:400;color:var(--ink-faded)">(a memory)</em></h3>
+    <p>A single piece of knowledge: a decision, a fact, a hard-won lesson. Short, specific, retrievable by semantic search.</p>
+
+    <h3>Tome <em style="font-weight:400;color:var(--ink-faded)">(a category)</em></h3>
+    <p>A named collection of spells. Default tomes: <strong>decisions</strong>, <strong>facts</strong>, <strong>preferences</strong>, <strong>summaries</strong>. Add your own in <code>.lore/config.yaml</code>.</p>
+
+    <h3>Relic <em style="font-weight:400;color:var(--ink-faded)">(a raw artifact)</em></h3>
+    <p>A raw artifact saved as-is for later distillation — a pasted session log, a git diff, a Slack thread. It lands in <code>.lore/relics/</code> untouched until you're ready to extract spells from it.</p>
+  </section>
+
+  <!-- ══ HOW THE MAGIC FLOWS ══ -->
+  <section class="parchment">
+    <h2><span class="rune">✧</span> How the Magic Flows</h2>
+<div class="scroll-diagram">Your decisions, facts &amp; lessons
+        ↓  lore add / lore relic
+  .lore/  (plain YAML)
+        ↓  lore export
+  CHRONICLE.md  ←  full project memory
+        ↓  referenced by lean instruction files:
+  copilot-instructions.md · AGENTS.md · CLAUDE.md
+        ↓
+  Every AI tool reads your repo context
+        — without you repeating yourself</div>
+  </section>
+
+  <!-- ══ INCANTATIONS ══ -->
+  <section class="parchment">
+    <h2><span class="rune">🜏</span> Incantations</h2>
+
+    <h3>Install via Homebrew</h3>
+    <div class="incantation"><span class="comment"># Bind the tap</span>
+<span class="cmd">brew tap</span> <span class="arg">CptPlastic/lore-book</span>
+<span class="cmd">brew install</span> <span class="arg">lore-book</span></div>
+
+    <h3>Cast your first spells</h3>
+    <div class="incantation"><span class="comment"># Record a decision</span>
+<span class="cmd">lore add</span> <span class="arg">decisions</span> <span class="arg">"Use PostgreSQL — we need JSONB and row-level locking"</span>
+
+<span class="comment"># Record a fact</span>
+<span class="cmd">lore add</span> <span class="arg">facts</span> <span class="arg">"Auth service is the sole issuer of JWTs — never bypass it"</span>
+
+<span class="comment"># Record a preference</span>
+<span class="cmd">lore add</span> <span class="arg">preferences</span> <span class="arg">"Prefer explicit over clever — this codebase has many contributors"</span>
+
+<span class="comment"># Publish to all AI instruction files</span>
+<span class="cmd">lore export</span></div>
+
+    <h3>Upgrade</h3>
+    <div class="incantation"><span class="cmd">brew upgrade</span> <span class="arg">lore-book</span></div>
+  </section>
+
+  <!-- ══ GRIMOIRE OF SPELLS ══ -->
+  <section class="parchment">
+    <h2><span class="rune">📖</span> Grimoire of Commands</h2>
+    <ul class="spells">
+      <li><strong>lore add &lt;tome&gt; &lt;text&gt;</strong> — Write a new spell into a tome</li>
+      <li><strong>lore list</strong> — Read all spells aloud</li>
+      <li><strong>lore search &lt;query&gt;</strong> — Locate spells by semantic similarity</li>
+      <li><strong>lore relic</strong> — Preserve a raw artifact for later distillation</li>
+      <li><strong>lore relic distill</strong> — Extract spells from a relic</li>
+      <li><strong>lore export</strong> — Publish the Chronicle to AI instruction files</li>
+      <li><strong>lore version</strong> — Reveal the grimoire's edition</li>
+    </ul>
+  </section>
+
+  <!-- ══ SCROLLS & PORTALS ══ -->
+  <section class="parchment">
+    <h2><span class="rune">🜁</span> Scrolls &amp; Portals</h2>
+    <div class="links">
+      <a class="link-rune" href="https://github.com/CptPlastic/lore-book" target="_blank" rel="noopener">⚔ Source Codex</a>
+      <a class="link-rune" href="https://pypi.org/project/lore-book/" target="_blank" rel="noopener">🜏 PyPI Tome</a>
+      <a class="link-rune" href="https://github.com/CptPlastic/homebrew-lore-book/issues" target="_blank" rel="noopener">📜 Issue Scroll</a>
+      <a class="link-rune" href="https://github.com/CptPlastic/homebrew-lore-book" target="_blank" rel="noopener">🍺 Homebrew Tap</a>
+    </div>
+  </section>
+
+  <div class="divider">— ✦ — ✦ — ✦ —</div>
+
+  <footer>
+    LORE &nbsp;·&nbsp; A HOMEBREW TAP BY CPTPLASTIC &nbsp;·&nbsp; MIT LICENSE
+  </footer>
+
+</div>
+</body>
+</html>
