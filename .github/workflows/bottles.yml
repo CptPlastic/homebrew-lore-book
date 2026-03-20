@@ -18,13 +18,20 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-13
           - macos-14
+          - macos-15
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Tap local repository
+        run: |
+          TAP_NAME=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+          echo "tap_name=$TAP_NAME" >> "$GITHUB_OUTPUT"
+          brew tap "$TAP_NAME" "$GITHUB_WORKSPACE"
+        id: tap
 
       - name: Compute version and release tag
         id: vars
@@ -38,14 +45,14 @@ jobs:
           echo "tag=lore-book-$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Install formula from source for bottling
-        run: brew install --build-bottle ./Formula/lore-book.rb
+        run: brew install --build-bottle "${{ steps.tap.outputs.tap_name }}/lore-book"
 
       - name: Build bottle + JSON
         run: |
           brew bottle --json \
             --no-all-checks \
             --root-url="https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}" \
-            lore-book
+            "${{ steps.tap.outputs.tap_name }}/lore-book"
 
       - name: Upload bottle artifacts
         uses: actions/upload-artifact@v4
