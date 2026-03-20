@@ -1,5 +1,9 @@
 name: Build and Publish Bottles
 
+concurrency:
+  group: bottles-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     types:
@@ -50,7 +54,6 @@ jobs:
       - name: Build bottle + JSON
         run: |
           brew bottle --json \
-            --no-all-checks \
             --root-url="https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}" \
             "${{ steps.tap.outputs.tap_name }}/lore-book"
 
