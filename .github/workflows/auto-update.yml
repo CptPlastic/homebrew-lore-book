@@ -80,7 +80,7 @@ jobs:
                   r'    url ")[^"]+("\n'
                   r'    sha256 ")[^"]+(")'
               )
-              replacement = f'\\g<1>{url}\\2\\3{sha}\\4'
+              replacement = lambda m: m.group(1) + url + m.group(2) + sha + m.group(3)
               new_content = re.sub(pattern, replacement, content)
               if new_content == content:
                   print(f'WARNING: pattern did not match for {res_name}')
