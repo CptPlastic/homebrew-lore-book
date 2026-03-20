@@ -116,7 +116,16 @@ class LoreBook < Formula
   end
 
   def install
-    virtualenv_install_with_resources
+    venv = virtualenv_create(libexec, "python3.12")
+    total = resources.count + 1
+
+    resources.each_with_index do |r, index|
+      ohai "[#{index + 1}/#{total}] Installing #{r.name}"
+      venv.pip_install r
+    end
+
+    ohai "[#{total}/#{total}] Installing lore-book"
+    venv.pip_install_and_link buildpath
   end
 
   test do
