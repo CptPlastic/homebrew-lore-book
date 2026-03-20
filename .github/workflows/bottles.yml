@@ -49,14 +49,20 @@ jobs:
       - name: Verify formula is discoverable
         run: |
           set -e
+          echo "=== Preflight Checks ==="
           FORMULA_PATH="${GITHUB_WORKSPACE}/Formula/lore-book.rb"
-          if [ ! -f "$FORMULA_PATH" ]; then
-            echo "ERROR: Formula file not found at $FORMULA_PATH"
-            exit 1
-          fi
-          echo "✓ Formula file exists at $FORMULA_PATH"
-          brew tap-info "${{ steps.tap.outputs.tap_name }}" > /dev/null || { echo "ERROR: Tap not properly registered"; exit 1; }
-          echo "✓ Tap registered: ${{ steps.tap.outputs.tap_name }}"
+          echo "[1/4] Checking formula file exists..."
+          test -f "$FORMULA_PATH" && echo "✓ Formula file: $FORMULA_PATH" || { echo "✗ Formula file NOT found"; exit 1; }
+          
+          echo "[2/4] Checking formula syntax..."
+          brew audit --formula --online "$FORMULA_PATH" 2>&1 | head -20 || echo "⚠ Audit warnings (non-blocking)"
+          
+          echo "[3/4] Checking tap is registered..."
+          brew list-taps | grep "${{ steps.tap.outputs.tap_name }}" && echo "✓ Tap: ${{ steps.tap.outputs.tap_name }}" || { echo "✗ Tap NOT registered"; exit 1; }
+          
+          echo "[4/4] Attempting formula description..."
+          brew describe "${{ steps.tap.outputs.tap_name }}/lore-book" 2>&1 && echo "✓ Formula is resolvable" || { echo "✗ Formula NOT resolvable"; exit 1; }
+          echo "=== All preflight checks passed ==="
 
       - name: Compute version and release tag
         id: vars
