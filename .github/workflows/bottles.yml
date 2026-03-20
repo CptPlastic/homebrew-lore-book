@@ -48,8 +48,15 @@ jobs:
 
       - name: Verify formula is discoverable
         run: |
-          brew search "${{ steps.tap.outputs.tap_name }}/lore-book"
-          brew info "${{ steps.tap.outputs.tap_name }}/lore-book"
+          set -e
+          FORMULA_PATH="${GITHUB_WORKSPACE}/Formula/lore-book.rb"
+          if [ ! -f "$FORMULA_PATH" ]; then
+            echo "ERROR: Formula file not found at $FORMULA_PATH"
+            exit 1
+          fi
+          echo "✓ Formula file exists at $FORMULA_PATH"
+          brew tap-info "${{ steps.tap.outputs.tap_name }}" > /dev/null || { echo "ERROR: Tap not properly registered"; exit 1; }
+          echo "✓ Tap registered: ${{ steps.tap.outputs.tap_name }}"
 
       - name: Compute version and release tag
         id: vars
