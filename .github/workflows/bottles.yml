@@ -30,6 +30,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: ${{ runner.os }}-${{ matrix.os }}-brew-${{ hashFiles('Formula/lore-book.rb') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.os }}-brew-
+
       - name: Tap local repository
         run: |
           OWNER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
