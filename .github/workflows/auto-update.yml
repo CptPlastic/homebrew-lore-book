@@ -34,7 +34,7 @@ jobs:
           NEW_VERSION: ${{ steps.pypi.outputs.version }}
         run: |
           python3 - <<'PYEOF'
-                    import urllib.request, json, re, os, shutil, subprocess, sys, tempfile
+          import urllib.request, json, re, os, shutil, subprocess, sys, tempfile
 
           new_version = os.environ['NEW_VERSION']
 
