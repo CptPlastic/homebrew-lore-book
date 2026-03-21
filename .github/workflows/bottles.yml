@@ -38,25 +38,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.os }}-brew-
 
-      - name: Tap local repository
-        run: |
-          OWNER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
-          TAP_NAME="${OWNER}/lore-book"
-          echo "tap_name=$TAP_NAME" >> "$GITHUB_OUTPUT"
-          brew tap "$TAP_NAME" "$GITHUB_WORKSPACE"
-        id: tap
-
       - name: Verify formula is discoverable
         run: |
           set -e
           echo "=== Preflight Checks ==="
           FORMULA_PATH="${GITHUB_WORKSPACE}/Formula/lore-book.rb"
-          echo "[1/2] Checking formula file exists..."
+          echo "[1/3] Checking formula file exists..."
           test -f "$FORMULA_PATH" && echo "✓ Formula file: $FORMULA_PATH" || { echo "✗ Formula file NOT found"; exit 1; }
-          
-          echo "[2/2] Checking tap directory..."
-          TAP_DIR="/usr/local/Homebrew/Library/Taps/cptplastic/homebrew-lore-book"
-          test -d "$TAP_DIR" && echo "✓ Tap directory exists" || echo "⚠ Tap directory check skipped (will be registered by brew tap)"
+
+          echo "[2/3] Checking Homebrew prefix..."
+          brew --prefix >/dev/null && echo "✓ Homebrew available"
+
+          echo "[3/3] Checking formula metadata parse..."
+          brew info --json=v2 "$FORMULA_PATH" >/dev/null && echo "✓ Formula parses correctly"
           echo "=== Preflight checks complete, proceeding to build ==="
 
       - name: Compute version and release tag
@@ -71,13 +65,13 @@ jobs:
           echo "tag=lore-book-$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Install formula from source for bottling
-        run: brew install --build-bottle "${{ steps.tap.outputs.tap_name }}/lore-book"
+        run: brew install --build-bottle ./Formula/lore-book.rb
 
       - name: Build bottle + JSON
         run: |
           brew bottle --json \
             --root-url="https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}" \
-            "${{ steps.tap.outputs.tap_name }}/lore-book"
+            lore-book
 
       - name: Upload bottle artifacts
         uses: actions/upload-artifact@v4
