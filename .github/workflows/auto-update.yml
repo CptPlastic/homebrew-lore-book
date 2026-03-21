@@ -3,10 +3,13 @@ name: Auto-update lore-book
 on:
   schedule:
     - cron: '0 8 * * *'  # Daily at 08:00 UTC
+  pull_request_review:
+    types: [submitted]
   workflow_dispatch:
 
 jobs:
   update:
+    if: github.event_name != 'pull_request_review' || github.event.review.state == 'approved'
     runs-on: macos-latest
     permissions:
       contents: write
