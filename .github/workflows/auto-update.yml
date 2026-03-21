@@ -33,18 +33,19 @@ jobs:
         env:
           NEW_VERSION: ${{ steps.pypi.outputs.version }}
         run: |
+          python3 -m pip install --upgrade pip --quiet
           python3 - <<'PYEOF'
-          import urllib.request, json, re, os
+          import urllib.request, json, re, os, subprocess, sys, tempfile
 
           new_version = os.environ['NEW_VERSION']
 
           def pypi_json(name, version=None):
-              url = f'https://pypi.org/pypi/{name}/{version}/json' if version else f'https://pypi.org/pypi/{name}/json'
+              url = (f'https://pypi.org/pypi/{name}/{version}/json' if version
+                     else f'https://pypi.org/pypi/{name}/json')
               with urllib.request.urlopen(url) as r:
                   return json.loads(r.read())
 
           def best_file(files):
-              """Return (url, sha256) preferring py3-none-any wheel, then py2.py3 wheel, then sdist."""
               for tag in ['-py3-none-any.whl', '-py2.py3-none-any.whl']:
                   for f in files:
                       if f['filename'].endswith(tag):
@@ -54,6 +55,42 @@ jobs:
                       return f['url'], f['digests']['sha256']
               raise RuntimeError('No suitable file found')
 
+          def normalize(name):
+              return re.sub(r'[-_.]+', '-', name).lower()
+
+          # Use pip to resolve the full transitive dependency tree
+          report_path = tempfile.mktemp(suffix='.json')
+          result = subprocess.run(
+              [sys.executable, '-m', 'pip', 'install', '--quiet', '--dry-run',
+               '--report', report_path, f'lore-book=={new_version}'],
+              capture_output=True, text=True
+          )
+          if result.returncode != 0:
+              print(f'pip resolution failed:\n{result.stderr}', file=sys.stderr)
+              sys.exit(1)
+
+          with open(report_path) as f:
+              report = json.load(f)
+
+          # Build map: normalized_name -> (canonical_name, resolved_version)
+          resolved = {}
+          for pkg in report['install']:
+              meta = pkg['metadata']
+              name, version = meta['name'], meta['version']
+              norm = normalize(name)
+              if norm == 'lore-book':
+                  continue
+              resolved[norm] = (name, version)
+
+          print(f'Resolved {len(resolved)} deps: {", ".join(sorted(resolved))}')
+
+          # Fetch the best wheel/sdist for each resolved dep
+          dep_info = {}
+          for norm, (name, version) in resolved.items():
+              data = pypi_json(name, version)
+              url, sha = best_file(data['urls'])
+              dep_info[norm] = {'name': name, 'url': url, 'sha': sha}
+
           with open('Formula/lore-book.rb') as fh:
               content = fh.read()
 
@@ -61,59 +98,68 @@ jobs:
           data = pypi_json('lore-book', new_version)
           main_url, main_sha = best_file(data['urls'])
           content = re.sub(
-              r'(  url ")[^"]*lore[_-]book-[^"]+(")' ,
-              f'\\g<1>{main_url}\\2',
+              r'(  url ")[^"]*lore[_-]book-[^"]+"',
+              lambda m: m.group(1) + main_url + '"',
               content
           )
           content = re.sub(
               r'(  sha256 ")[^"]+("(\n\n  license))',
-              f'\\g<1>{main_sha}\\2',
+              lambda m: m.group(1) + main_sha + m.group(2),
               content
           )
 
-          # 2. Update each resource block
-          def update_resource(content, res_name, pypi_name, version):
-              data = pypi_json(pypi_name, version)
-              url, sha = best_file(data['urls'])
+          # 2. Parse current resource names from the formula
+          existing = {}  # norm -> res_name as written in formula
+          for res_name in re.findall(r'  resource "([^"]+)" do', content):
+              existing[normalize(res_name)] = res_name
+
+          stale = sorted(set(existing) - set(dep_info))
+          added = sorted(set(dep_info) - set(existing))
+          print(f'Stale (removing): {stale or "none"}')
+          print(f'New   (adding):   {added or "none"}')
+
+          # 3. Remove stale resources no longer required by the package
+          for norm in stale:
+              res_name = existing[norm]
+              print(f'Removing: {res_name}')
+              content = re.sub(
+                  r'\n\n  resource "' + re.escape(res_name) + r'" do\n    url "[^"]+"\n    sha256 "[^"]+"\n  end',
+                  '',
+                  content
+              )
+
+          # 4. Update url + sha256 for resources that remain
+          for norm, res_name in existing.items():
+              if norm not in dep_info:
+                  continue
+              info = dep_info[norm]
               pattern = (
                   r'(  resource "' + re.escape(res_name) + r'" do\n'
                   r'    url ")[^"]+("\n'
                   r'    sha256 ")[^"]+(")'
               )
-              replacement = lambda m: m.group(1) + url + m.group(2) + sha + m.group(3)
-              new_content = re.sub(pattern, replacement, content)
+              repl = lambda m, u=info['url'], s=info['sha']: m.group(1) + u + m.group(2) + s + m.group(3)
+              new_content = re.sub(pattern, repl, content)
               if new_content == content:
-                  print(f'WARNING: pattern did not match for {res_name}')
-              return new_content
+                  print(f'WARNING: update did not match for {res_name}')
+              content = new_content
 
-          # Collect current resource versions from the formula
-          resource_versions = dict(re.findall(
-              r'resource "[^"]+" do\n    url "[^"]*?([a-zA-Z0-9_.-]+-(\d+[.\d]*)[-.](?:tar\.gz|whl))"',
-              content
-          ))
-
-          # Parse resource name -> (pypi_name, version) from formula
-          resources = re.findall(
-              r'resource "([^"]+)" do\n    url "[^"]*?/([a-zA-Z0-9_.]+)-(\d[\d.]*?)[-.](?:py3-none-any\.whl|py2\.py3-none-any\.whl|tar\.gz)"',
-              content
-          )
-
-          pypi_name_map = {
-              'annotated-doc': 'annotated-doc',
-              'GitPython': 'GitPython',
-              'Pygments': 'Pygments',
-              'PyYAML': 'PyYAML',
-          }
-
-          for res_name, _, version in resources:
-              # Derive PyPI package name: resource name takes priority in map, else normalise
-              pypi_name = pypi_name_map.get(res_name, res_name)
-              content = update_resource(content, res_name, pypi_name, version)
+          # 5. Add new dependencies the package now requires
+          for norm in added:
+              info = dep_info[norm]
+              print(f'Adding: {info["name"]}')
+              block = (
+                  f'\n\n  resource "{info["name"]}" do'
+                  f'\n    url "{info["url"]}"'
+                  f'\n    sha256 "{info["sha"]}"'
+                  f'\n  end'
+              )
+              content = content.replace('\n\n  def install', block + '\n\n  def install', 1)
 
           with open('Formula/lore-book.rb', 'w') as fh:
               fh.write(content)
 
-          print(f'Formula updated to lore-book {new_version}')
+          print(f'Done. Formula updated to lore-book {new_version}.')
           PYEOF
 
       - name: Open pull request
