@@ -55,6 +55,12 @@ jobs:
                       return f['url'], f['digests']['sha256']
               raise RuntimeError('No suitable file found')
 
+          def sdist_file(files):
+              for f in files:
+                  if f.get('packagetype') == 'sdist':
+                      return f['url'], f['digests']['sha256']
+              raise RuntimeError('No sdist file found for lore-book')
+
           def normalize(name):
               return re.sub(r'[-_.]+', '-', name).lower()
 
@@ -96,7 +102,7 @@ jobs:
 
           # 1. Update main package url + sha256
           data = pypi_json('lore-book', new_version)
-          main_url, main_sha = best_file(data['urls'])
+          main_url, main_sha = sdist_file(data['urls'])
           content = re.sub(
               r'(  url ")[^"]*lore[_-]book-[^"]+"',
               lambda m: m.group(1) + main_url + '"',
