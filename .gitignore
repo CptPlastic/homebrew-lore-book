@@ -8,3 +8,4 @@ CHRONICLE.pdf
 .github/prompts/lore.prompt.md
 .github/copilot-instructions.md
 .cursor/rules/memory.md
+*.pdf
