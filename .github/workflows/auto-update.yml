@@ -33,9 +33,8 @@ jobs:
         env:
           NEW_VERSION: ${{ steps.pypi.outputs.version }}
         run: |
-          python3 -m pip install --upgrade pip --quiet
           python3 - <<'PYEOF'
-          import urllib.request, json, re, os, subprocess, sys, tempfile
+                    import urllib.request, json, re, os, shutil, subprocess, sys, tempfile
 
           new_version = os.environ['NEW_VERSION']
 
@@ -64,13 +63,25 @@ jobs:
           def normalize(name):
               return re.sub(r'[-_.]+', '-', name).lower()
 
-          # Use pip to resolve the full transitive dependency tree
+          # Use pip in a temporary venv to avoid PEP 668 on system-managed Python.
           report_path = tempfile.mktemp(suffix='.json')
-          result = subprocess.run(
-              [sys.executable, '-m', 'pip', 'install', '--quiet', '--dry-run',
-               '--report', report_path, f'lore-book=={new_version}'],
-              capture_output=True, text=True
-          )
+          venv_dir = tempfile.mkdtemp(prefix='lore-book-resolve-')
+          try:
+              subprocess.run(
+                  [sys.executable, '-m', 'venv', venv_dir],
+                  check=True,
+                  capture_output=True,
+                  text=True,
+              )
+              venv_python = os.path.join(venv_dir, 'bin', 'python')
+              result = subprocess.run(
+                  [venv_python, '-m', 'pip', 'install', '--quiet', '--dry-run',
+                   '--report', report_path, f'lore-book=={new_version}'],
+                  capture_output=True, text=True
+              )
+          finally:
+              shutil.rmtree(venv_dir, ignore_errors=True)
+
           if result.returncode != 0:
               print(f'pip resolution failed:\n{result.stderr}', file=sys.stderr)
               sys.exit(1)
