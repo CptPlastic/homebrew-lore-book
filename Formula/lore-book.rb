@@ -6,7 +6,7 @@ class LoreBook < Formula
   url "https://files.pythonhosted.org/packages/92/3f/24e2be5ef64e3e7f10418fbc3d84877fa240831c817bef930f8fc0e747f5/lore_book-1.2.0.tar.gz"
   sha256 "abe5be6d2a85e087849cc08fce4150535780b9346dfe196db7330534e982c557"
 
-  license "MIT"
+  license "FSL-1.1-MIT"
 
   livecheck do
     url :stable
