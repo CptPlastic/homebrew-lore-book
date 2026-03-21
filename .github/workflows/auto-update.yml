@@ -25,7 +25,7 @@ jobs:
       - name: Get current formula version
         id: formula
         run: |
-                    VERSION=$(python3 -c "import re; m=re.search(r'lore[_-]book-(\\d+(?:\\.\\d+)*)', open('Formula/lore-book.rb').read()); print(m.group(1) if m else '')")
+          VERSION=$(python3 -c "import re; m=re.search(r'lore[_-]book-(\\d+(?:\\.\\d+)*)', open('Formula/lore-book.rb').read()); print(m.group(1) if m else '')")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update formula
