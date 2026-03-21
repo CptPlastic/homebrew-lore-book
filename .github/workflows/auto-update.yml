@@ -25,7 +25,7 @@ jobs:
       - name: Get current formula version
         id: formula
         run: |
-          VERSION=$(sed -n 's|.*lore[_-]book-\([0-9.]*\)\.tar\.gz.*|\1|p' Formula/lore-book.rb | head -1)
+          VERSION=$(python3 -c "import re; m=re.search(r'lore[_-]book-(\\d[\\d.]+)', open('Formula/lore-book.rb').read()); print(m.group(1) if m else '')")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Update formula
@@ -61,7 +61,7 @@ jobs:
           data = pypi_json('lore-book', new_version)
           main_url, main_sha = best_file(data['urls'])
           content = re.sub(
-              r'(  url ")[^"]*lore_book-[^"]+(")',
+              r'(  url ")[^"]*lore[_-]book-[^"]+(")' ,
               f'\\g<1>{main_url}\\2',
               content
           )

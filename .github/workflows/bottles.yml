@@ -62,7 +62,7 @@ jobs:
       - name: Compute version and release tag
         id: vars
         run: |
-          VERSION=$(sed -n 's|.*lore[_-]book-\([0-9.]*\)\.tar\.gz.*|\1|p' Formula/lore-book.rb | head -1)
+          VERSION=$(python3 -c "import re; m=re.search(r'lore[_-]book-(\\d[\\d.]+)', open('Formula/lore-book.rb').read()); print(m.group(1) if m else '')")
           if [ -z "$VERSION" ]; then
             echo "Unable to determine version from Formula/lore-book.rb" >&2
             exit 1
@@ -103,7 +103,7 @@ jobs:
       - name: Compute version and release tag
         id: vars
         run: |
-          VERSION=$(sed -n 's|.*lore[_-]book-\([0-9.]*\)\.tar\.gz.*|\1|p' Formula/lore-book.rb | head -1)
+          VERSION=$(python3 -c "import re; m=re.search(r'lore[_-]book-(\\d[\\d.]+)', open('Formula/lore-book.rb').read()); print(m.group(1) if m else '')")
           if [ -z "$VERSION" ]; then
             echo "Unable to determine version from Formula/lore-book.rb" >&2
             exit 1
