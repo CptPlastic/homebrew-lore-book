@@ -9,3 +9,5 @@ CHRONICLE.pdf
 .github/copilot-instructions.md
 .cursor/rules/memory.md
 *.pdf
+.github/.DS_Store
+.DS_Store
