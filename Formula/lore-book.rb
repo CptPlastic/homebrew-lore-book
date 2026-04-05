@@ -3,8 +3,8 @@ class LoreBook < Formula
 
   desc "The spellbook for your codebase — AI project memory"
   homepage "https://github.com/CptPlastic/lore-book"
-  url "https://files.pythonhosted.org/packages/7a/bb/f7ec746cadf1509a3253fccba0f081107fd2fddbc9fefa19c054ea4fe55b/lore_book-1.3.0.tar.gz"
-  sha256 "706013aee7b647379e60cf9614a1e2e019423c318b95d464231322baed9ed7c1"
+  url "https://files.pythonhosted.org/packages/f5/2e/abd343bb0cf5d18dfddad02ee8824c028fda639bd8b49377bc570b96588b/lore_book-1.4.1.tar.gz"
+  sha256 "b779928d7c59a83fd36b56f66d18becb9d97166293351d610618b18d738cc3e9"
 
   license "FSL-1.1-MIT"
 
@@ -21,8 +21,8 @@ class LoreBook < Formula
   end
 
   resource "click" do
-    url "https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl"
-    sha256 "981153a64e25f12d547d3426c367a4857371575ee7ad18df2a6183ab0545b2a6"
+    url "https://files.pythonhosted.org/packages/e4/20/71885d8b97d4f3dde17b1fdb92dbd4908b00541c5a3379787137285f602e/click-8.3.2-py3-none-any.whl"
+    sha256 "1924d2c27c5653561cd2cae4548d1406039cb79b858b747cfea24924bbc1616d"
   end
 
   resource "gitdb" do
@@ -61,8 +61,8 @@ class LoreBook < Formula
   end
 
   resource "Pygments" do
-    url "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl"
-    sha256 "86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b"
+    url "https://files.pythonhosted.org/packages/f4/7e/a72dd26f3b0f4f2bf1dd8923c85f7ceb43172af56d63c7383eb62b332364/pygments-2.20.0-py3-none-any.whl"
+    sha256 "81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176"
   end
 
   resource "pyyaml" do
@@ -86,8 +86,8 @@ class LoreBook < Formula
   end
 
   resource "textual" do
-    url "https://files.pythonhosted.org/packages/50/21/421b02bf5943172b7a9320712a5e0d74a02a8f7597284e3f8b5b06c70b8d/textual-8.1.1-py3-none-any.whl"
-    sha256 "6712f96e335cd782e76193dee16b9c8875fe0699d923bc8d3f1228fd23e773a6"
+    url "https://files.pythonhosted.org/packages/a7/18/4d59eb3f2241db6d346a90f2452fc47a19d61090a38b9cf331afe23e8431/textual-8.2.2-py3-none-any.whl"
+    sha256 "35a8f439875dc6e5b4dc7ee72dc9698a40bd13091c2de5bd5b2d4318522af8df"
   end
 
   resource "typer" do
