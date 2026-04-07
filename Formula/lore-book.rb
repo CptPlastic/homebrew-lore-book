@@ -3,8 +3,8 @@ class LoreBook < Formula
 
   desc "The spellbook for your codebase — AI project memory"
   homepage "https://github.com/CptPlastic/lore-book"
-  url "https://files.pythonhosted.org/packages/f0/76/bdf3947d7bcd5d6b9b3e885da9e4d9a154e9542d0c5e50b7985e83b519f3/lore_book-1.4.2.tar.gz"
-  sha256 "da2fd1f5c1ddfae460fe33491977a2b313f1d7684a27cb7afe372e6e260fa8b0"
+  url "https://files.pythonhosted.org/packages/a8/81/c7008f6f79cc5fe7b5d267defe99b48f3ad655bb2bfc92aaa35c9c02b540/lore_book-1.4.3.tar.gz"
+  sha256 "e017407ac2781f99f7e5f126136cc54efb607060aa73b7c6bd28453f4d638741"
 
   license "FSL-1.1-MIT"
 
