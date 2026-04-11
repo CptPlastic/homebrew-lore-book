@@ -3,8 +3,8 @@ class LoreBook < Formula
 
   desc "The spellbook for your codebase — AI project memory"
   homepage "https://github.com/CptPlastic/lore-book"
-  url "https://files.pythonhosted.org/packages/14/1d/5eb7f4587e16d01bffbe8cc825522bd0e85fe5fbf33796693b959ef9db93/lore_book-1.4.5.tar.gz"
-  sha256 "76838c27579b1dbce095bf125c2d7dbe592456f24a4470eba8993a0dba6c7e2c"
+  url "https://files.pythonhosted.org/packages/96/6a/d47fcf87734b00a4090447c53464eaa57d3d1fdf4681612dfc8953da8688/lore_book-1.4.6.tar.gz"
+  sha256 "ac8bd95d63d6a14299c55bfbb3e41174f4babfe3dddcca0dd952d08d0a214fb7"
 
   license "FSL-1.1-MIT"
 
@@ -56,8 +56,8 @@ class LoreBook < Formula
   end
 
   resource "platformdirs" do
-    url "https://files.pythonhosted.org/packages/63/d7/97f7e3a6abb67d8080dd406fd4df842c2be0efaf712d1c899c32a075027c/platformdirs-4.9.4-py3-none-any.whl"
-    sha256 "68a9a4619a666ea6439f2ff250c12a853cd1cbd5158d258bd824a7df6be2f868"
+    url "https://files.pythonhosted.org/packages/75/a6/a0a304dc33b49145b21f4808d763822111e67d1c3a32b524a1baf947b6e1/platformdirs-4.9.6-py3-none-any.whl"
+    sha256 "e61adb1d5e5cb3441b4b7710bea7e4c12250ca49439228cc1021c00dcfac0917"
   end
 
   resource "Pygments" do
@@ -71,8 +71,8 @@ class LoreBook < Formula
   end
 
   resource "rich" do
-    url "https://files.pythonhosted.org/packages/14/25/b208c5683343959b670dc001595f2f3737e051da617f66c31f7c4fa93abc/rich-14.3.3-py3-none-any.whl"
-    sha256 "793431c1f8619afa7d3b52b2cdec859562b950ea0d4b6b505397612db8d5362d"
+    url "https://files.pythonhosted.org/packages/b3/76/6d163cfac87b632216f71879e6b2cf17163f773ff59c00b5ff4900a80fa3/rich-14.3.4-py3-none-any.whl"
+    sha256 "07e7adb4690f68864777b1450859253bed81a99a31ac321ac1817b2313558952"
   end
 
   resource "shellingham" do
